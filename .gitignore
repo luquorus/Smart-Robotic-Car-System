@@ -1,0 +1,42 @@
+# Environment variables
+.env
+.env.local
+.env.*.local
+*.env
+
+# Node modules
+node_modules/
+**/node_modules/
+
+# Build outputs
+dist/
+build/
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Private URLs and sensitive data
+# MongoDB connection strings
+# MQTT broker URLs with IPs
+# API keys and secrets
+
+# Admin panel specific
+admin-panel/backend/.env
+admin-panel/admin-ui/.env
+
+# User controller
+user-controller/.env
+
+# ESP32
+esp32_car/.env
+esp32-cam/.env
+

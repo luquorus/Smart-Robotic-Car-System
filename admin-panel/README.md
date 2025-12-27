@@ -38,13 +38,15 @@ cd backend
 npm install
 ```
 
-3. File `.env` đã được tạo sẵn với MongoDB Atlas. Nếu cần chỉnh sửa:
+3. Tạo file `.env` với cấu hình sau:
 ```bash
 PORT=8080
-MQTT_URL=mqtt://192.168.0.107:1883
-MONGO_URI=mongodb+srv://luquoruswork_db_user:SCwi5a78eO7Vr7oU@cluster0.i4bwlfm.mongodb.net/?appName=Cluster0
+MQTT_URL=mqtt://YOUR_MQTT_BROKER_IP:1883
+MONGO_URI=your_mongodb_connection_string
 MONGO_DB=esp32_car
 ```
+
+**Lưu ý:** Thay thế `YOUR_MQTT_BROKER_IP` và `your_mongodb_connection_string` bằng thông tin thực tế của bạn.
 
 4. Chạy backend:
 ```bash
