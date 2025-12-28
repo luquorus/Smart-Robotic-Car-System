@@ -1,154 +1,154 @@
-# Sơ Đồ Chân Đấu Nối Phần Cứng - ESP32 Car
+# Hardware Pin Connection Diagram - ESP32 Car
 
-## Bảng Tổng Hợp Chân GPIO
+## GPIO Pin Summary Table
 
-| Chức Năng | Chân ESP32 | Mô Tả | Ghi Chú |
-|-----------|------------|-------|---------|
-| **ĐỘNG CƠ BÁNH TRÁI** |
-| IN1 | GPIO 12 | Điều khiển chiều quay (HIGH/LOW) | Kết nối L298N IN1 |
-| IN2 | GPIO 14 | Điều khiển chiều quay (HIGH/LOW) | Kết nối L298N IN2 |
-| ENA | GPIO 13 | PWM điều khiển tốc độ (0-255) | Kết nối L298N ENA |
-| **ĐỘNG CƠ BÁNH PHẢI** |
-| IN3 | GPIO 4 | Điều khiển chiều quay (HIGH/LOW) | Kết nối L298N IN3 |
-| IN4 | GPIO 2 | Điều khiển chiều quay (HIGH/LOW) | Kết nối L298N IN4 |
-| ENB | GPIO 15 | PWM điều khiển tốc độ (0-255) | Kết nối L298N ENB |
-| **CẢM BIẾN LINE (TCRT5000)** |
-| L2 (Outer-Left) | GPIO 34 | Cảm biến ngoài cùng bên trái | INPUT, LOW khi trên vạch đen |
-| L1 (Left) | GPIO 32 | Cảm biến bên trái | INPUT, LOW khi trên vạch đen |
-| M (Middle) | GPIO 33 | Cảm biến giữa | INPUT, LOW khi trên vạch đen |
-| R1 (Right) | GPIO 25 | Cảm biến bên phải | INPUT, LOW khi trên vạch đen |
-| R2 (Outer-Right) | GPIO 27 | Cảm biến ngoài cùng bên phải | INPUT, LOW khi trên vạch đen |
+| Function | ESP32 Pin | Description |
+|----------|-----------|-------------|
+| **LEFT MOTOR** |
+| IN1 | GPIO 12 | Direction control (HIGH/LOW) |
+| IN2 | GPIO 14 | Direction control (HIGH/LOW) |
+| ENA | GPIO 13 | PWM speed control (0-255) |
+| **RIGHT MOTOR** |
+| IN3 | GPIO 4 | Direction control (HIGH/LOW) |
+| IN4 | GPIO 2 | Direction control (HIGH/LOW) |
+| ENB | GPIO 15 | PWM speed control (0-255) |
+| **LINE SENSORS (TCRT5000)** |
+| L2 (Outer-Left) | GPIO 34 | Outer-left sensor |
+| L1 (Left) | GPIO 32 | Left sensor |
+| M (Middle) | GPIO 33 | Middle sensor |
+| R1 (Right) | GPIO 25 | Right sensor |
+| R2 (Outer-Right) | GPIO 27 | Outer-right sensor |
 | **ENCODER** |
-| ENC_L | GPIO 26 | Encoder bánh trái | INPUT_PULLUP, ISR CHANGE |
-| ENC_R | GPIO 22 | Encoder bánh phải | INPUT_PULLUP, ISR CHANGE |
-| **CẢM BIẾN SIÊU ÂM (HC-SR04)** |
-| TRIG | GPIO 21 | Chân Trigger | OUTPUT, phát xung 10µs |
-| ECHO | GPIO 19 | Chân Echo | INPUT, đọc thời gian phản hồi |
-| **SERVO (Tùy chọn)** |
-| Servo | GPIO 18 | Điều khiển servo gripper | OUTPUT, PWM (nếu sử dụng) |
+| ENC_L | GPIO 26 | Left wheel encoder |
+| ENC_R | GPIO 22 | Right wheel encoder |
+| **ULTRASONIC SENSOR (HC-SR04)** |
+| TRIG | GPIO 21 | Trigger pin |
+| ECHO | GPIO 19 | Echo pin |
+| **SERVO (Optional)** |
+| Servo | GPIO 18 | Servo gripper control |
 
-## Sơ Đồ Đấu Nối L298N
+## L298N Connection Diagram
 
-### Kết Nối L298N với ESP32
+### L298N to ESP32 Connection
 
-| L298N | ESP32 | Chức Năng |
-|-------|-------|-----------|
-| IN1 | GPIO 12 | Điều khiển bánh trái - chiều 1 |
-| IN2 | GPIO 14 | Điều khiển bánh trái - chiều 2 |
-| ENA | GPIO 13 | PWM bánh trái (0-255) |
-| IN3 | GPIO 4 | Điều khiển bánh phải - chiều 1 |
-| IN4 | GPIO 2 | Điều khiển bánh phải - chiều 2 |
-| ENB | GPIO 15 | PWM bánh phải (0-255) |
-| VCC | 5V | Nguồn logic (có thể dùng 3.3V) |
-| GND | GND | Mass chung |
-| +12V | Pin nguồn động cơ | Nguồn động cơ (7-12V) |
-| GND | GND | Mass nguồn động cơ |
+| L298N | ESP32 | Function |
+|-------|-------|----------|
+| IN1 | GPIO 12 | Left motor direction 1 |
+| IN2 | GPIO 14 | Left motor direction 2 |
+| ENA | GPIO 13 | Left motor PWM (0-255) |
+| IN3 | GPIO 4 | Right motor direction 1 |
+| IN4 | GPIO 2 | Right motor direction 2 |
+| ENB | GPIO 15 | Right motor PWM (0-255) |
+| VCC | 5V | Logic power (can use 3.3V) |
+| GND | GND | Common ground |
+| +12V | Motor power pin | Motor power (7-12V) |
+| GND | GND | Motor power ground |
 
-### Kết Nối Động Cơ với L298N
+### Motor to L298N Connection
 
-| L298N | Động Cơ |
-|-------|---------|
-| OUT1, OUT2 | Động cơ bánh trái |
-| OUT3, OUT4 | Động cơ bánh phải |
+| L298N | Motor |
+|-------|-------|
+| OUT1, OUT2 | Left motor |
+| OUT3, OUT4 | Right motor |
 
-## Sơ Đồ Đấu Nối Cảm Biến
+## Sensor Connection Diagram
 
-### Cảm Biến Line (TCRT5000) - 5 Cảm Biến
+### Line Sensors (TCRT5000) - 5 Sensors
 
-| Cảm Biến | ESP32 | VCC | GND | Chức Năng |
-|----------|-------|-----|-----|-----------|
-| L2 | GPIO 34 | 3.3V | GND | Phát hiện vạch ngoài trái |
-| L1 | GPIO 32 | 3.3V | GND | Phát hiện vạch trái |
-| M | GPIO 33 | 3.3V | GND | Phát hiện vạch giữa |
-| R1 | GPIO 25 | 3.3V | GND | Phát hiện vạch phải |
-| R2 | GPIO 27 | 3.3V | GND | Phát hiện vạch ngoài phải |
+| Sensor | ESP32 | VCC | GND | Function |
+|--------|-------|-----|-----|----------|
+| L2 | GPIO 34 | 3.3V | GND | Detect outer-left line |
+| L1 | GPIO 32 | 3.3V | GND | Detect left line |
+| M | GPIO 33 | 3.3V | GND | Detect middle line |
+| R1 | GPIO 25 | 3.3V | GND | Detect right line |
+| R2 | GPIO 27 | 3.3V | GND | Detect outer-right line |
 
-**Lưu ý:** TCRT5000 trả về LOW khi phát hiện vạch đen.
+**Note:** TCRT5000 returns LOW when detecting black line.
 
 ### Encoder (Optical Encoder)
 
-| Encoder | ESP32 | VCC | GND | Chức Năng |
-|---------|-------|-----|-----|-----------|
-| ENC_L (A) | GPIO 26 | 3.3V hoặc 5V | GND | Đếm xung bánh trái |
-| ENC_R (A) | GPIO 22 | 3.3V hoặc 5V | GND | Đếm xung bánh phải |
+| Encoder | ESP32 | VCC | GND | Function |
+|---------|-------|-----|-----|----------|
+| ENC_L (A) | GPIO 26 | 3.3V or 5V | GND | Count left wheel pulses |
+| ENC_R (A) | GPIO 22 | 3.3V or 5V | GND | Count right wheel pulses |
 
-**Lưu ý:** 
-- Sử dụng INPUT_PULLUP (không cần điện trở kéo lên ngoài)
-- ISR trên cả 2 cạnh (CHANGE) → đếm 2x số xung
-- PULSES_PER_REV = 20 (sau khi nhân 2 = 40 xung/vòng)
+**Note:** 
+- Uses INPUT_PULLUP (no external pull-up resistor needed)
+- ISR on both edges (CHANGE) → counts 2x pulses
+- PULSES_PER_REV = 20 (after multiply by 2 = 40 pulses/revolution)
 
-### Cảm Biến Siêu Âm HC-SR04
+### Ultrasonic Sensor HC-SR04
 
-| HC-SR04 | ESP32 | Chức Năng |
-|---------|-------|-----------|
-| VCC | 5V | Nguồn (có thể dùng 3.3V nhưng khoảng cách giảm) |
-| GND | GND | Mass |
-| TRIG | GPIO 21 | Kích hoạt đo (OUTPUT) |
-| ECHO | GPIO 19 | Nhận tín hiệu phản hồi (INPUT) |
+| HC-SR04 | ESP32 | Function |
+|---------|-------|----------|
+| VCC | 5V | Power (can use 3.3V but range reduced) |
+| GND | GND | Ground |
+| TRIG | GPIO 21 | Trigger measurement (OUTPUT) |
+| ECHO | GPIO 19 | Receive echo signal (INPUT) |
 
-**Lưu ý:** 
-- ECHO có thể cần voltage divider (5V → 3.3V) nếu HC-SR04 dùng 5V
-- Hoặc dùng HC-SR04 phiên bản 3.3V
+**Note:** 
+- ECHO may need voltage divider (5V → 3.3V) if HC-SR04 uses 5V
+- Or use HC-SR04 3.3V version
 
-## Sơ Đồ Nguồn
+## Power Supply Diagram
 
-| Nguồn | Điện Áp | Dòng | Kết Nối |
-|-------|---------|------|---------|
-| ESP32 | 5V (USB) hoặc 3.3V | ~500mA | Nguồn chính |
-| L298N Logic | 5V hoặc 3.3V | ~50mA | Từ ESP32 hoặc nguồn riêng |
-| L298N Motor | 7-12V | 1-2A | Pin LiPo hoặc adapter |
-| Cảm Biến | 3.3V hoặc 5V | ~50mA | Từ ESP32 |
-| HC-SR04 | 5V (khuyến nghị) | ~15mA | Từ nguồn 5V |
+| Power Source | Voltage | Current | Connection |
+|--------------|---------|---------|------------|
+| ESP32 | 5V (USB) or 3.3V | ~500mA | Main power |
+| L298N Logic | 5V or 3.3V | ~50mA | From ESP32 or separate source |
+| L298N Motor | 7-12V | 1-2A | LiPo battery or adapter |
+| Sensors | 3.3V or 5V | ~50mA | From ESP32 |
+| HC-SR04 | 5V (recommended) | ~15mA | From 5V source |
 
-## Bảng Tóm Tắt Theo Nhóm
+## Summary Table by Group
 
-### Nhóm Điều Khiển Động Cơ
-| Chân | Chức Năng | Loại | Mô Tả |
-|------|-----------|------|-------|
-| GPIO 12 | IN1 (Trái) | OUTPUT | Chiều quay bánh trái |
-| GPIO 14 | IN2 (Trái) | OUTPUT | Chiều quay bánh trái |
-| GPIO 13 | ENA (Trái) | PWM | Tốc độ bánh trái (0-255) |
-| GPIO 4 | IN3 (Phải) | OUTPUT | Chiều quay bánh phải |
-| GPIO 2 | IN4 (Phải) | OUTPUT | Chiều quay bánh phải |
-| GPIO 15 | ENB (Phải) | PWM | Tốc độ bánh phải (0-255) |
+### Motor Control Group
+| Pin | Function | Type | Description |
+|-----|----------|------|-------------|
+| GPIO 12 | IN1 (Left) | OUTPUT | Left wheel direction |
+| GPIO 14 | IN2 (Left) | OUTPUT | Left wheel direction |
+| GPIO 13 | ENA (Left) | PWM | Left wheel speed (0-255) |
+| GPIO 4 | IN3 (Right) | OUTPUT | Right wheel direction |
+| GPIO 2 | IN4 (Right) | OUTPUT | Right wheel direction |
+| GPIO 15 | ENB (Right) | PWM | Right wheel speed (0-255) |
 
-### Nhóm Cảm Biến Line
-| Chân | Chức Năng | Loại | Mô Tả |
-|------|-----------|------|-------|
-| GPIO 34 | L2 (Outer-Left) | INPUT | Cảm biến ngoài trái |
-| GPIO 32 | L1 (Left) | INPUT | Cảm biến trái |
-| GPIO 33 | M (Middle) | INPUT | Cảm biến giữa |
-| GPIO 25 | R1 (Right) | INPUT | Cảm biến phải |
-| GPIO 27 | R2 (Outer-Right) | INPUT | Cảm biến ngoài phải |
+### Line Sensor Group
+| Pin | Function | Type | Description |
+|-----|----------|------|-------------|
+| GPIO 34 | L2 (Outer-Left) | INPUT | Outer-left sensor |
+| GPIO 32 | L1 (Left) | INPUT | Left sensor |
+| GPIO 33 | M (Middle) | INPUT | Middle sensor |
+| GPIO 25 | R1 (Right) | INPUT | Right sensor |
+| GPIO 27 | R2 (Outer-Right) | INPUT | Outer-right sensor |
 
-### Nhóm Encoder
-| Chân | Chức Năng | Loại | Mô Tả |
-|------|-----------|------|-------|
-| GPIO 26 | ENC_L | INPUT_PULLUP | Encoder bánh trái (ISR) |
-| GPIO 22 | ENC_R | INPUT_PULLUP | Encoder bánh phải (ISR) |
+### Encoder Group
+| Pin | Function | Type | Description |
+|-----|----------|------|-------------|
+| GPIO 26 | ENC_L | INPUT_PULLUP | Left wheel encoder (ISR) |
+| GPIO 22 | ENC_R | INPUT_PULLUP | Right wheel encoder (ISR) |
 
-### Nhóm Cảm Biến Siêu Âm
-| Chân | Chức Năng | Loại | Mô Tả |
-|------|-----------|------|-------|
-| GPIO 21 | TRIG | OUTPUT | Kích hoạt đo khoảng cách |
-| GPIO 19 | ECHO | INPUT | Nhận tín hiệu phản hồi |
+### Ultrasonic Sensor Group
+| Pin | Function | Type | Description |
+|-----|----------|------|-------------|
+| GPIO 21 | TRIG | OUTPUT | Trigger distance measurement |
+| GPIO 19 | ECHO | INPUT | Receive echo signal |
 
-## Lưu Ý Quan Trọng
+## Important Notes
 
-1. **GPIO 34, 35, 36, 39**: Chỉ có thể đọc (INPUT only), không hỗ trợ PULLUP/PULLDOWN
-2. **GPIO 2**: Có thể gây vấn đề khi boot nếu kết nối sai (có LED onboard)
-3. **PWM**: ESP32 hỗ trợ PWM trên hầu hết các chân, tần số có thể điều chỉnh
-4. **ISR**: Encoder sử dụng interrupt trên cả 2 cạnh (CHANGE) để đếm chính xác
-5. **Nguồn**: Đảm bảo nguồn đủ mạnh cho động cơ (khuyến nghị 7.4V LiPo)
+1. **GPIO 34, 35, 36, 39**: Input only, no PULLUP/PULLDOWN support
+2. **GPIO 2**: May cause boot issues if connected incorrectly (has onboard LED)
+3. **PWM**: ESP32 supports PWM on most pins, frequency is adjustable
+4. **ISR**: Encoder uses interrupt on both edges (CHANGE) for accurate counting
+5. **Power**: Ensure sufficient power for motors (recommend 7.4V LiPo)
 
-## Sơ Đồ Kết Nối Tổng Thể
+## Overall Connection Diagram
 
 ```
 ESP32 DevKit
 │
 ├── L298N Motor Driver
-│   ├── IN1, IN2, ENA → Bánh trái
-│   └── IN3, IN4, ENB → Bánh phải
+│   ├── IN1, IN2, ENA → Left wheel
+│   └── IN3, IN4, ENB → Right wheel
 │
 ├── 5x TCRT5000 Line Sensors
 │   ├── L2 → GPIO 34
@@ -166,16 +166,15 @@ ESP32 DevKit
     └── ECHO → GPIO 19
 ```
 
-## Thông Số Kỹ Thuật
+## Technical Specifications
 
-| Thông Số | Giá Trị |
-|----------|---------|
-| Bán kính bánh xe | 0.0325 m (32.5 mm) |
-| Khoảng cách 2 bánh (Track Width) | 0.095 m (95 mm) |
-| Xung/vòng encoder | 20 (hiệu quả 40 với CHANGE) |
-| Ngưỡng vật cản | 15 cm |
-| Tốc độ cơ sở line-follow | 0.5 m/s |
-| Chu kỳ PID | 10 ms |
-| Tốc độ PWM tối đa | 255 |
-| Tốc độ PWM tối thiểu | 60-90 (deadband) |
-
+| Parameter | Value |
+|-----------|-------|
+| Wheel radius | 0.0325 m (32.5 mm) |
+| Track width | 0.095 m (95 mm) |
+| Encoder pulses/revolution | 20 (effective 40 with CHANGE) |
+| Obstacle threshold | 15 cm |
+| Base line-follow speed | 0.5 m/s |
+| PID cycle | 10 ms |
+| Maximum PWM speed | 255 |
+| Minimum PWM speed | 60-90 (deadband) |
