@@ -1,0 +1,88 @@
+@startuml Telemetry History Flow
+!theme plain
+skinparam sequenceMessageAlign center
+skinparam backgroundColor #FFFFFF
+
+title View Telemetry History & Charts (Web UI → Backend → MongoDB)
+
+actor "Web UI\n(Admin Panel)" as WebUI
+participant "Backend API\n(Express)" as Backend
+database "MongoDB" as MongoDB
+
+== Load Telemetry History ==
+WebUI -> Backend: GET /api/telemetry\n?device_id={id}&limit=100&from={date}&to={date}
+activate Backend
+
+Backend -> Backend: Parse query parameters\n- device_id (required)\n- limit (default: 100)\n- from, to (date range)
+Backend -> Backend: Build MongoDB query\n{device_id: "...",\nts: {$gte: fromDate, $lte: toDate}}
+
+Backend -> MongoDB: db.telemetry.find(query)\n.sort({ts: -1})\n.limit(limit)
+activate MongoDB
+MongoDB -> MongoDB: Query with index\n{device_id: 1, ts: -1}
+MongoDB --> Backend: Array of telemetry documents
+deactivate MongoDB
+
+Backend --> WebUI: HTTP 200\nJSON array of telemetry data
+deactivate Backend
+
+== Display in UI ==
+WebUI -> WebUI: Process telemetry data
+WebUI -> WebUI: Render charts\n- Time series graphs\n- Speed over time\n- Distance over time\n- Line sensor states
+WebUI -> WebUI: Display data table\n- Timestamp\n- Mode, Motion\n- Speed values\n- Sensor readings
+
+== Load Events History ==
+WebUI -> Backend: GET /api/events\n?device_id={id}&limit=50
+activate Backend
+Backend -> MongoDB: db.events.find({device_id})\n.sort({ts: -1})\n.limit(50)
+activate MongoDB
+MongoDB --> Backend: Array of event documents
+deactivate MongoDB
+Backend --> WebUI: HTTP 200\nJSON array of events
+deactivate Backend
+
+WebUI -> WebUI: Display events list\n- Obstacle detections\n- Mode changes\n- Error events
+
+== Load Latest Telemetry ==
+WebUI -> Backend: GET /api/telemetry/latest\n?device_id={id}
+activate Backend
+Backend -> MongoDB: db.telemetry.findOne({device_id})\n.sort({ts: -1})
+activate MongoDB
+MongoDB --> Backend: Latest telemetry document
+deactivate MongoDB
+Backend --> WebUI: HTTP 200\nSingle telemetry document
+deactivate Backend
+
+WebUI -> WebUI: Update current status display
+
+note right of Backend
+  **API Endpoints:**
+  - GET /api/telemetry
+  - GET /api/telemetry/latest
+  - GET /api/events
+  - GET /api/status
+  
+  **Query Parameters:**
+  - device_id (required)
+  - limit (default: 100)
+  - from, to (ISO date strings)
+  
+  **MongoDB Indexes:**
+  - {device_id: 1, ts: -1}
+  Optimized for time-range queries
+end note
+
+note right of WebUI
+  **Chart Types:**
+  - Line charts (time series)
+  - Bar charts (categorical)
+  - Gauge charts (current values)
+  
+  **Data Visualization:**
+  - Speed over time
+  - Distance sensor readings
+  - Line sensor states
+  - WiFi signal strength
+end note
+
+@enduml
+

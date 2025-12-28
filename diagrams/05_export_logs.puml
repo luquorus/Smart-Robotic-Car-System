@@ -1,0 +1,90 @@
+@startuml Export Logs Flow
+!theme plain
+skinparam sequenceMessageAlign center
+skinparam backgroundColor #FFFFFF
+
+title Export Logs (Web UI → Backend → MongoDB → File Export)
+
+actor "Web UI\n(Admin Panel)" as WebUI
+participant "Backend API\n(Express)" as Backend
+database "MongoDB" as MongoDB
+participant "File System" as FileSystem
+
+== Request Export ==
+WebUI -> Backend: GET /api/devices/{device_id}/logs/export\n?type={telemetry|events|status|all}\n&format={csv|txt}\n&from={date}&to={date}
+activate Backend
+
+Backend -> Backend: Validate parameters\n- device_id (required)\n- type: telemetry/events/status/all\n- format: csv/txt\n- from, to (optional date range)
+
+== Query MongoDB ==
+alt type == "all"
+    Backend -> Backend: collections = ['telemetry', 'events', 'status']
+else type == "telemetry"
+    Backend -> Backend: collections = ['telemetry']
+else type == "events"
+    Backend -> Backend: collections = ['events']
+else type == "status"
+    Backend -> Backend: collections = ['status']
+end
+
+loop For each collection
+    Backend -> Backend: Build query\n{device_id: "...",\nts: {$gte: fromDate, $lte: toDate}}
+    Backend -> MongoDB: db.{collection}.find(query)\n.sort({ts: 1})
+    activate MongoDB
+    MongoDB -> MongoDB: Query with index\nReturn all matching documents
+    MongoDB --> Backend: Array of documents
+    deactivate MongoDB
+    Backend -> Backend: Add _collection field\nto each document
+    Backend -> Backend: Append to allData array
+end
+
+Backend -> Backend: Sort allData by timestamp\n(allData.sort((a,b) => a.ts - b.ts))
+
+== Generate Export File ==
+alt format == "csv"
+    Backend -> Backend: Extract all unique keys\nfrom all documents
+    Backend -> Backend: Build CSV header\n['collection', ...keys]
+    Backend -> Backend: Convert each document to CSV row\n- Escape commas and quotes\n- Handle null/undefined values\n- Stringify objects
+    Backend -> Backend: Join rows with newlines\ncsv = headers + rows.join('\\n')
+    Backend -> Backend: Set headers\nContent-Type: text/csv\nContent-Disposition: attachment\nfilename: device_{id}_logs_{date}.csv
+    
+else format == "txt"
+    Backend -> Backend: Build TXT header\nDevice Logs Export\nDevice ID: ...\nExport Date: ...\nTotal Records: ...
+    Backend -> Backend: Format each document\n[1] Collection: ...\nTimestamp: ...\nkey: value\n...
+    Backend -> Backend: Join with separators\n---\n
+    Backend -> Backend: Set headers\nContent-Type: text/plain\nContent-Disposition: attachment\nfilename: device_{id}_logs_{date}.txt
+end
+
+== Send File to Client ==
+Backend --> WebUI: HTTP 200\nContent-Type: {csv|txt}\nContent-Disposition: attachment\n{file content}
+deactivate Backend
+
+WebUI -> WebUI: Browser downloads file\nSave to user's Downloads folder
+WebUI -> WebUI: Show download complete notification
+
+note right of Backend
+  **Export Options:**
+  - type: telemetry, events, status, all
+  - format: csv, txt
+  - Date range filtering (from, to)
+  
+  **File Format:**
+  - CSV: Comma-separated, Excel-compatible
+  - TXT: Human-readable, formatted text
+  
+  **File Naming:**
+  device_{device_id}_logs_{YYYY-MM-DD}.{ext}
+end note
+
+note right of WebUI
+  **User Actions:**
+  1. Select device
+  2. Choose log type
+  3. Select date range
+  4. Choose format (CSV/TXT)
+  5. Click "Export"
+  6. File downloads automatically
+end note
+
+@enduml
+

@@ -1,0 +1,58 @@
+@startuml Manual Control Flow
+!theme plain
+skinparam sequenceMessageAlign center
+skinparam backgroundColor #FFFFFF
+
+title Manual Control (Mobile → Robot via HTTP)
+
+actor "Mobile App" as Mobile
+participant "ESP32 Robot\n(HTTP Server)" as Robot
+database "Motor Drivers" as Motors
+
+== User Action ==
+Mobile -> Robot: HTTP GET /forward
+activate Robot
+Robot -> Motors: digitalWrite(IN1, HIGH)\ndigitalWrite(IN2, LOW)\netc.
+activate Motors
+Motors -> Motors: Apply motor control signals
+Robot -> Robot: Execute forward() function
+Robot --> Mobile: HTTP 200 OK "OK"
+deactivate Motors
+deactivate Robot
+
+== Alternative: Speed Control ==
+Mobile -> Robot: HTTP GET /speed/lin/up
+activate Robot
+Robot -> Robot: speed_linear += SPEED_STEP\napplyCurrentMotion()
+Robot -> Motors: Update PWM signals\nanalogWrite(ENA, speed_linear)
+activate Motors
+Motors -> Motors: Adjust motor speed
+Robot --> Mobile: HTTP 200 OK "OK"
+deactivate Motors
+deactivate Robot
+
+== Stop Command ==
+Mobile -> Robot: HTTP GET /stop
+activate Robot
+Robot -> Motors: digitalWrite(IN1, LOW)\ndigitalWrite(IN2, LOW)\nStop all motors
+activate Motors
+Motors -> Motors: Stop motors
+Robot --> Mobile: HTTP 200 OK "OK"
+deactivate Motors
+deactivate Robot
+
+note right of Robot
+  **Endpoints:**
+  - /forward, /backward
+  - /left, /right
+  - /stop
+  - /speed/lin/up, /speed/lin/down
+  - /speed/rot/up, /speed/rot/down
+  - /fwd_left, /fwd_right, etc.
+  
+  **Direct HTTP connection**
+  No backend proxy needed
+end note
+
+@enduml
+

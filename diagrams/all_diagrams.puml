@@ -1,0 +1,28 @@
+@startuml All Diagrams Index
+!theme plain
+skinparam backgroundColor #FFFFFF
+
+title IoT Car Control System - All Sequence Diagrams
+
+== Diagram 1: Manual Control ==
+See: 01_manual_control.puml
+Mobile App → ESP32 Robot (HTTP Direct)
+
+== Diagram 2: Telemetry Realtime ==
+See: 02_telemetry_realtime.puml
+Robot → MQTT → Backend → WebSocket → Web UI
+
+== Diagram 3: Live Video Streaming ==
+See: 03_live_video_streaming.puml
+ESP32-CAM → Mobile App (MJPEG Stream)
+
+== Diagram 4: Telemetry History ==
+See: 04_telemetry_history.puml
+Web UI → Backend → MongoDB → Charts
+
+== Diagram 5: Export Logs ==
+See: 05_export_logs.puml
+Web UI → Backend → MongoDB → CSV/TXT Export
+
+@enduml
+

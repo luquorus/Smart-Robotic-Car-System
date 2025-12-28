@@ -1,0 +1,92 @@
+@startuml Telemetry Realtime Flow
+!theme plain
+skinparam sequenceMessageAlign center
+skinparam backgroundColor #FFFFFF
+
+title Telemetry Realtime (Robot → MQTT → Backend → WebSocket → Web UI)
+
+participant "ESP32 Robot" as Robot
+participant "MQTT Broker" as MQTT
+participant "Backend\n(MQTT Handler)" as Backend
+database "MongoDB" as MongoDB
+participant "WebSocket\n(Socket.IO)" as WS
+actor "Web UI\n(Admin Panel)" as WebUI
+
+== Continuous Telemetry Publishing ==
+loop Every 2 seconds (TELEMETRY_INTERVAL_MS)
+    Robot -> Robot: Collect sensor data\n- distance_cm\n- line sensors (L2,L1,M,R1,R2)\n- wifi_rssi\n- motion state\n- speed_linear, speed_rot
+    Robot -> Robot: Build JSON payload\n{device_id, mode, motion,\nspeed_linear, speed_rot,\ndistance_cm, obstacle,\nline[], wifi_rssi, uptime_ms}
+    Robot -> MQTT: Publish to\ncar/{device_id}/telemetry
+    activate MQTT
+    MQTT -> Backend: Message received\ncar/{device_id}/telemetry
+    activate Backend
+    
+    == Store to Database ==
+    Backend -> Backend: Parse JSON payload\nExtract device_id
+    Backend -> MongoDB: Insert document\nCollection: telemetry\nAdd timestamp (ts)
+    activate MongoDB
+    MongoDB --> Backend: Document saved
+    deactivate MongoDB
+    
+    == Push to WebSocket ==
+    Backend -> WS: io.emit('telemetry', data)
+    activate WS
+    WS -> WebUI: Socket.IO event: 'telemetry'
+    activate WebUI
+    WebUI -> WebUI: Update live telemetry display\nUpdate charts in real-time
+    deactivate WebUI
+    deactivate WS
+    
+    MQTT --> Robot: ACK (if QoS > 0)
+    deactivate Backend
+    deactivate MQTT
+end
+
+== Obstacle Event (On-Demand) ==
+Robot -> Robot: Detect obstacle\n(distance < OBSTACLE_TH_CM)
+Robot -> Robot: Build event payload\n{type: "obstacle",\ndistance_cm, timestamp}
+Robot -> MQTT: Publish to\ncar/{device_id}/event
+activate MQTT
+MQTT -> Backend: Message received\ncar/{device_id}/event
+activate Backend
+Backend -> MongoDB: Insert document\nCollection: events
+activate MongoDB
+MongoDB --> Backend: Document saved
+deactivate MongoDB
+Backend -> WS: io.emit('event', data)
+activate WS
+WS -> WebUI: Socket.IO event: 'event'
+activate WebUI
+WebUI -> WebUI: Show alert/notification\nAdd to events list
+deactivate WebUI
+deactivate WS
+deactivate Backend
+deactivate MQTT
+
+note right of Backend
+  **MQTT Topics:**
+  - car/+/telemetry
+  - car/+/event
+  - car/+/status
+  
+  **MongoDB Collections:**
+  - telemetry
+  - events
+  - status
+  
+  **Socket.IO Events:**
+  - 'telemetry'
+  - 'event'
+  - 'status'
+end note
+
+note right of WebUI
+  **Real-time Updates:**
+  - Live telemetry dashboard
+  - Charts auto-refresh
+  - Event notifications
+  - Device status indicators
+end note
+
+@enduml
+

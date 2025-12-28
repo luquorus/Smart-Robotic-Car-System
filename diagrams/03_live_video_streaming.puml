@@ -1,0 +1,66 @@
+@startuml Live Video Streaming Flow
+!theme plain
+skinparam sequenceMessageAlign center
+skinparam backgroundColor #FFFFFF
+
+title Live Video Streaming (ESP32-CAM → Mobile App)
+
+participant "ESP32-CAM" as Camera
+participant "WiFi Router" as WiFi
+actor "Mobile App" as Mobile
+
+== Stream Initialization ==
+Mobile -> WiFi: Connect to WiFi network
+WiFi -> Camera: HTTP GET /stream
+activate Camera
+
+== Continuous MJPEG Stream ==
+Camera -> Camera: esp_camera_fb_get()
+Camera -> Camera: Capture frame from camera sensor
+Camera -> Camera: Convert to JPEG\n(if needed: frame2jpg())
+Camera -> Camera: Build multipart response\nContent-Type: image/jpeg\nContent-Length: {size}
+
+loop Continuous streaming (~30 FPS)
+    Camera -> Mobile: HTTP Chunk 1\n--frame\r\nContent-Type: image/jpeg\r\nContent-Length: {len}\r\n\r\n
+    Camera -> Mobile: HTTP Chunk 2\n{JPEG binary data}
+    Camera -> Mobile: HTTP Chunk 3\n--frame\r\n
+    activate Mobile
+    Mobile -> Mobile: Decode JPEG frame
+    Mobile -> Mobile: Display frame on screen
+    deactivate Mobile
+    
+    Camera -> Camera: esp_camera_fb_return(fb)\nFree frame buffer
+    Camera -> Camera: delay(30ms) // ~30 FPS
+end
+
+== Stream Termination ==
+Mobile -> Camera: Close HTTP connection
+deactivate Camera
+
+note right of Camera
+  **Stream Format:**
+  - MJPEG (Motion JPEG)
+  - multipart/x-mixed-replace
+  - Boundary: "frame"
+  
+  **Endpoints:**
+  - GET /stream (MJPEG stream)
+  - GET /capture (Single JPEG image)
+  
+  **Direct connection:**
+  No backend proxy
+  Direct HTTP to ESP32-CAM IP
+end note
+
+note right of Mobile
+  **Display Options:**
+  - WebView with MJPEG URL
+  - Custom MJPEG player
+  - Native video component
+  
+  **Connection:**
+  http://{ESP32-CAM_IP}/stream
+end note
+
+@enduml
+
